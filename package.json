@@ -1,0 +1,13 @@
+{
+  "name": "alice-ai-radar",
+  "version": "1.0.0",
+  "description": "Радар ИИ-видимости — анализ видимости сайтов в ИИ-выдаче Яндекс Алисы по данным Keys.so",
+  "type": "module",
+  "main": "src/server.mjs",
+  "scripts": {
+    "start": "node --env-file=.env src/server.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

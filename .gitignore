@@ -1,0 +1,22 @@
+# Секреты
+.env
+.env.local
+
+# Локальная база и данные
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Зависимости и сборка
+node_modules/
+dist/
+build/
+
+# Локальные настройки Claude Code
+.claude/settings.local.json
+
+# ОС и редакторы
+.DS_Store
+*.log

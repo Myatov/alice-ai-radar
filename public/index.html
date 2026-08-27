@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Радар ИИ-видимости · Яндекс Алиса</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">◈</div>
+        <div>
+          <div class="brand-name">Радар ИИ-видимости</div>
+          <div class="brand-sub">Яндекс Алиса · Keys.so</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-view="setup">＋ Новый анализ</button>
+        <button class="nav-btn" data-view="dashboard" id="nav-dashboard" disabled>▤ Дашборд</button>
+      </nav>
+      <div class="saved">
+        <div class="saved-title">Сохранённые проекты</div>
+        <div id="saved-list" class="saved-list"></div>
+      </div>
+      <div class="sidebar-foot">
+        <button id="theme-toggle" class="theme-toggle" title="Переключить тему">🌙</button>
+        <span id="cfg-badge" class="badge">…</span>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <!-- SETUP VIEW -->
+      <section id="view-setup" class="view">
+        <header class="page-head">
+          <h1>Анализ ИИ-видимости в выдаче Алисы</h1>
+          <p class="lead">Внесите сайты, выберите клиента и конкурентов — мы снимем видимость в ИИ-ответах Яндекс Алисы, сравним по всем критериям и покажем, что клиенту <b>необходимо</b> продвигаться.</p>
+        </header>
+
+        <div class="setup-grid">
+          <div class="card">
+            <div class="card-h">1 · Внесите адреса сайтов</div>
+            <textarea id="domains-input" class="domains-ta" placeholder="Вставьте по одному домену на строку:&#10;client-site.ru&#10;competitor-1.ru&#10;competitor-2.ru"></textarea>
+            <button id="parse-btn" class="btn btn-ghost">Разобрать сайты →</button>
+          </div>
+
+          <div class="card">
+            <div class="card-h">2 · Назначьте роли</div>
+            <p class="hint">Отметьте <b>один</b> сайт клиента и его значимых конкурентов.</p>
+            <div id="roles-list" class="roles-list">
+              <div class="empty">Сначала внесите и разберите сайты слева.</div>
+            </div>
+            <div class="setup-actions">
+              <input id="project-name" class="text-in" placeholder="Название проекта (напр. «Клиент — мебель»)" />
+              <button id="run-btn" class="btn btn-primary" disabled>▶ Снять видимость и сравнить</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="progress-card" class="card progress-card hidden">
+          <div class="card-h">Идёт анализ… <span class="spinner"></span></div>
+          <div id="progress-log" class="progress-log"></div>
+        </div>
+      </section>
+
+      <!-- DASHBOARD VIEW -->
+      <section id="view-dashboard" class="view hidden">
+        <div id="dash-content"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>
