@@ -184,6 +184,7 @@ async function openProject(id) {
     if (!res.ok) throw new Error(data.error || 'не найдено');
     currentProject = data;
     $('#nav-dashboard').disabled = false;
+    setSavedOpen(false); // дашборд открывают перед клиентом — прячем чужие проекты
     showView('dashboard');
     renderDashboard(data);
   } catch (e) {
@@ -664,6 +665,8 @@ async function loadSaved() {
     const list = await res.json();
     const box = $('#saved-list');
     box.innerHTML = '';
+    const counter = $('#saved-count');
+    if (counter) counter.textContent = list.length || '';
     if (!list.length) {
       box.appendChild(el('div', 'mini-tag', 'Пока нет сохранённых проектов.'));
       return;
@@ -697,6 +700,25 @@ async function delProject(id) {
   toast('Проект удалён');
 }
 
+// Список сохранённых проектов свёрнут при каждой загрузке страницы и не запоминает
+// состояние: экран часто показывают клиенту, а в списке — названия других клиентов.
+function setSavedOpen(open) {
+  const box = $('#saved-box');
+  if (!box) return;
+  box.classList.toggle('collapsed', !open);
+  const btn = $('#saved-toggle');
+  if (btn) {
+    btn.setAttribute('aria-expanded', String(open));
+    btn.title = open ? 'Скрыть список сохранённых проектов' : 'Показать список сохранённых проектов';
+  }
+}
+function initSavedPanel() {
+  setSavedOpen(false);
+  $('#saved-toggle').addEventListener('click', () => {
+    setSavedOpen($('#saved-box').classList.contains('collapsed'));
+  });
+}
+
 // ---------- theme ----------
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
@@ -720,6 +742,7 @@ function initTheme() {
 // ---------- init ----------
 async function init() {
   initTheme();
+  initSavedPanel();
   try {
     const cfg = await (await fetch('/api/config')).json();
     const badge = $('#cfg-badge');

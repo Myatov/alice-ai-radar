@@ -85,7 +85,23 @@ body {
 .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .saved { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-.saved-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 10px; }
+.saved-title {
+  width: 100%; display: flex; align-items: center; gap: 7px;
+  background: transparent; border: none; padding: 0; margin-bottom: 10px; cursor: pointer;
+  font-family: inherit; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--dim); text-align: left; transition: color 0.15s;
+}
+.saved-title:hover { color: var(--text); }
+.saved-title .st-chev { font-size: 9px; transition: transform 0.15s; }
+.saved-title .st-label { flex: 1; }
+.saved-title .st-count {
+  font-size: 10px; letter-spacing: 0; padding: 1px 6px; border-radius: 8px;
+  background: var(--panel); border: 1px solid var(--line);
+}
+/* Список чужих проектов скрыт по умолчанию — чтобы при показе экрана клиенту
+   он не видел названия других клиентов. Раскрывается только вручную. */
+.saved.collapsed .saved-list { display: none; }
+.saved:not(.collapsed) .saved-title .st-chev { transform: rotate(90deg); }
 .saved-list { overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
 .saved-item {
   padding: 9px 11px; border-radius: 9px; background: var(--panel); border: 1px solid var(--line);

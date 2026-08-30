@@ -23,8 +23,12 @@
         <button class="nav-btn active" data-view="setup">＋ Новый анализ</button>
         <button class="nav-btn" data-view="dashboard" id="nav-dashboard" disabled>▤ Дашборд</button>
       </nav>
-      <div class="saved">
-        <div class="saved-title">Сохранённые проекты</div>
+      <div class="saved collapsed" id="saved-box">
+        <button type="button" id="saved-toggle" class="saved-title" aria-expanded="false" aria-controls="saved-list" title="Показать список сохранённых проектов">
+          <span class="st-chev">▸</span>
+          <span class="st-label">Сохранённые проекты</span>
+          <span id="saved-count" class="st-count"></span>
+        </button>
         <div id="saved-list" class="saved-list"></div>
       </div>
       <div class="sidebar-foot">
