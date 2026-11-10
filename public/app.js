@@ -168,7 +168,14 @@ async function runAnalysis() {
     await loadSaved();
     await openProject(projectId);
   });
-  es.onerror = () => { es.close(); $('#run-btn').disabled = false; };
+  // Сервер закрывает поток сегментами — EventSource переподключается сам.
+  // Сдаёмся только когда браузер окончательно закрыл соединение (404, 5xx).
+  es.onerror = () => {
+    if (es.readyState === EventSource.CLOSED) {
+      appendLog(log, 'Соединение с сервером потеряно', 'err');
+      $('#run-btn').disabled = false;
+    }
+  };
 }
 function appendLog(log, msg, cls) {
   const line = el('div', 'pl-line' + (cls ? ' pl-' + cls : ''), esc(msg));
@@ -583,7 +590,7 @@ async function genInsights() {
   try {
     const res = await fetch('/api/project/' + currentProject.id + '/insights', { method: 'POST' });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'ошибка генерации');
+    if (!res.ok || data.error) throw new Error(data.error || 'ошибка генерации');
     currentProject.insights = data;
     renderInsights(data);
     toast('Выводы готовы');

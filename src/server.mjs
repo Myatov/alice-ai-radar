@@ -21,8 +21,8 @@ const jobs = new Map(); // jobId -> { logs:[], subs:Set<res>, done, error, proje
 
 function jobEmit(job, message) {
   const line = { t: Date.now(), message };
-  job.logs.push(line);
-  for (const res of job.subs) sendSse(res, 'log', line);
+  const id = job.logs.push(line) - 1;
+  for (const res of job.subs) sendSse(res, 'log', line, id);
 }
 function jobFinish(job, patch) {
   Object.assign(job, patch, { done: true });
@@ -32,9 +32,16 @@ function jobFinish(job, patch) {
   }
   job.subs.clear();
 }
-function sendSse(res, event, data) {
-  res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+function sendSse(res, event, data, id) {
+  const idLine = id === undefined ? '' : `id: ${id}\n`;
+  res.write(`${idLine}event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
+
+// SSE-поток отдаётся короткими сегментами: сервер закрывает соединение каждые
+// SSE_SEGMENT_MS, браузерный EventSource сам переподключается с Last-Event-ID
+// и получает только новые строки. Так поток проходит через PHP-прокси хостинга,
+// не упираясь в fastcgi_read_timeout и не держа PHP-FPM воркер минутами.
+const SSE_SEGMENT_MS = 20_000;
 
 async function runAnalysis(job, name, domains) {
   try {
@@ -156,14 +163,25 @@ const server = createServer(async (req, res) => {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no',
       });
-      for (const line of job.logs) sendSse(res, 'log', line);
+      res.write('retry: 1000\n\n');
+      const lastId = Number.parseInt(req.headers['last-event-id'], 10);
+      const from = Number.isInteger(lastId) && lastId >= 0 ? lastId + 1 : 0;
+      for (let i = from; i < job.logs.length; i++) sendSse(res, 'log', job.logs[i], i);
       if (job.done) {
         sendSse(res, 'done', { projectId: job.projectId, error: job.error || null });
         return res.end();
       }
       job.subs.add(res);
-      req.on('close', () => job.subs.delete(res));
+      const segment = setTimeout(() => {
+        job.subs.delete(res);
+        res.end();
+      }, SSE_SEGMENT_MS);
+      res.on('close', () => {
+        clearTimeout(segment);
+        job.subs.delete(res);
+      });
       return;
     }
 
@@ -265,7 +283,7 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, process.env.HOST || undefined, () => {
   console.log(`\n  Радар ИИ-видимости → http://localhost:${PORT}`);
   console.log(`  База Keys.so: ${BASE} | Keys.so токен: ${keysoConfig.TOKEN_SET ? 'ok' : 'НЕТ'} | OpenAI: ${aiConfig.KEY_SET ? aiConfig.MODEL : 'НЕТ'}\n`);
 });

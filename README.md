@@ -63,6 +63,30 @@ KEYSO_BASE=msk        # ИИ-выдача доступна только для �
 PORT=5173
 ```
 
+## Продакшн: alice.seo-performance.ru
+
+Хостинг без root-доступа: nginx отдаёт `public_html/` статикой, всё остальное
+уходит в PHP-FPM (`try_files … /index.php`). Поэтому:
+
+```
+/var/www/alice.seo-performance.ru/   (= $HOME пользователя aliceseo)
+  node24/       собственный Node 24 (системный — v20, без node:sqlite)
+  app/          src/, package.json, .env, data/analytics.db, logs/
+  public_html/  статика из public/ + deploy/public_html/{index.php,.user.ini}
+```
+
+- `public_html/index.php` — прокси в Node на `127.0.0.1:18100`: стримит ответы
+  (`X-Accel-Buffering: no`), для долгой генерации выводов шлёт пробелы-keepalive.
+- SSE-лог анализа отдаётся сегментами по 20 с: сервер закрывает поток,
+  `EventSource` переподключается с `Last-Event-ID` и получает только новые строки —
+  так не упираемся в `fastcgi_read_timeout` и не держим общий пул PHP-FPM.
+- Node запущен через pm2 (`deploy/ecosystem.config.cjs`), автозапуск после
+  перезагрузки — `@reboot pm2 resurrect` в crontab пользователя.
+- OpenAI блокирует российские IP, поэтому запросы к нему идут через HTTP-прокси
+  хостинга `127.0.0.1:3128` (`HTTPS_PROXY` + `NODE_USE_ENV_PROXY`), Keys.so — напрямую.
+
+Обновление кода: `./deploy/deploy.sh` (база и `.env` на сервере не трогаются).
+
 ## Архитектура
 
 ```
